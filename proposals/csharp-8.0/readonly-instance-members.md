@@ -51,9 +51,9 @@ public struct Vector2
         return tmp;
     }
 
-    public float LengthSquared
+    public readonly float LengthSquared
     {
-        readonly get
+        get
         {
             return (x * x) +
                    (y * y);
@@ -86,16 +86,16 @@ public static class MyClass
 }
 ```
 
-Readonly can be applied to property accessors to indicate that `this` will not be mutated in the accessor.
+Readonly can be applied to property accessors to indicate that `this` will not be mutated in the accessor. The following examples have readonly setters because those accessors modify the state of member field, but do not modify the value of that member field.
 
 ```csharp
-public int Prop1
+public readonly int Prop1
 {
-    readonly get
+    get
     {
         return this._store["Prop1"];
     }
-    readonly set
+    set
     {
         this._store["Prop1"] = value;
     }
@@ -174,7 +174,7 @@ public static readonly event Event4
 Some other syntax examples:
 
 * Expression bodied members: `public readonly float ExpressionBodiedMember => (x * x) + (y * y);`
-* Generic constraints: `public static readonly void GenericMethod<T>(T value) where T : struct { }`
+* Generic constraints: `public readonly void GenericMethod<T>(T value) where T : struct { }`
 
 The compiler would emit the instance member, as usual, and would additionally emit a compiler recognized attribute indicating that the instance member does not modify state. This effectively causes the hidden `this` parameter to become `in T` instead of `ref T`.
 

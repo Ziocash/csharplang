@@ -1,38 +1,99 @@
-# Upcoming meetings for 2019
-
-## Schedule ASAP
-
-## Schedule when convenient
-
-## Recurring topics
-
-- *Triage championed features*
-- *Triage milestones*
-- *Design review*
-
-## Oct 30, 2019
-
-- https://github.com/dotnet/csharplang/issues/2850 Proposed changes for pattern-matching (Neal)
-- https://github.com/dotnet/csharplang/issues/2860 Switch Expression as a Statement Expression (Neal)
-- https://github.com/dotnet/csharplang/issues/2608 module initializers (Neal)
-
-## Oct 28, 2019
-
-- https://github.com/dotnet/csharplang/issues/2823 Enhancing the Common Type Specification (Neal)
-- https://github.com/dotnet/csharplang/issues/2844 Covariant Return Types (Neal)
-
-## Oct 23, 2019
-
-- close on compat issue with duplicate implementations/constraints modulo nullability differences (Julien)
-- https://github.com/dotnet/csharplang/issues/435 Native-sized ints (Chuck, Jared)
-
-## Oct 21, 2019
-
-- Records and related features (Andy)
 
 # C# Language Design Notes for 2019
 
 Overview of meetings and agendas for 2019
+
+## Dec 18, 2019
+
+[C# Language Design Notes for Dec 18, 2019](LDM-2019-12-18.md)
+
+1. Pure null checks
+2. `var?`
+
+## Dec 16, 2019
+
+[C# Language Design Notes for Dec 16, 2019](LDM-2019-12-16.md)
+
+1. Switch Expression as a Statement Expression (continued) (Neal, Fred)
+2. Triage
+
+## Dec 11, 2019
+
+[C# Language Design Notes for Dec 11, 2019](LDM-2019-12-11.md)
+
+1. Design review feedback
+
+## Dec 9, 2019
+(not yet transcribed)
+- https://github.com/dotnet/csharplang/issues/2850 Proposed changes for pattern-matching (continued) (Neal)
+- https://github.com/dotnet/csharplang/issues/2860 Switch Expression as a Statement Expression (Neal)
+
+## Dec 4, 2019 (Design Review)
+(not yet transcribed)
+
+## Nov 25, 2019
+
+[C# Language Design Notes for Nov 25, 2019](LDM-2019-11-25.md)
+
+1. Revisit unconstrained `T?` (Mads, Jared)
+
+## Nov 20, 2019
+(not yet transcribed)
+- https://github.com/dotnet/csharplang/issues/2911 Utf8 String Literals (Neal)
+- https://github.com/dotnet/csharplang/issues/2850 Proposed changes for pattern-matching (continued) (Neal)
+
+## Nov 18, 2019
+
+[C# Language Design Notes for Nov. 18, 2019](LDM-2019-11-18.md)
+
+1. Proposed changes for pattern-matching
+
+## Nov 13, 2019
+
+[C# Language Design Notes for Nov 13, 2019](LDM-2019-11-13.md)
+
+1. Discriminated unions
+2. Improve analysis of `[MaybeNull]T` values
+
+## Nov 11, 2019
+
+[C# Language Design Notes for Nov 11, 2019](LDM-2019-11-11.md)
+
+1. Confirm removal of warning calling a method that returns `[MaybeNull]T`
+2. Allow interpolated string constant
+3. Enhancing the Common Type Specification
+4. Type pattern
+5. Simple name binding with target type
+
+## Oct 30, 2019
+
+[C# Language Design Notes for Oct 30, 2019](LDM-2019-10-30.md)
+
+1. Function Pointer syntax
+2. Enhancing the Common Type Specification
+
+## Oct 28, 2019
+
+[C# Language Design Notes for Oct 28, 2019](LDM-2019-10-28.md)
+
+1. Discard parameters in lambdas and other methods
+1. Enhancing the common type algorithm
+
+## Oct 23, 2019
+
+[C# Language Design Notes for Oct 23, 2019](LDM-2019-10-23.md)
+
+1. New primitive types 
+
+https://github.com/dotnet/csharplang/issues/435
+
+## Oct 21, 2019
+
+[C# Language Design Notes for Oct 21, 2019](LDM-2019-10-21.md)
+
+1. Records
+2. Init-only members
+3. Static lambdas
 
 ## Sep 18, 2019
 
