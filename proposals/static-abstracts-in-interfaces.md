@@ -191,6 +191,32 @@ to
 
 *These restrictions do not apply to occurrences of types within declarations of **non-virtual, non-abstract** static members.*
 
+## Processing of user-defined implicit conversions
+https://github.com/dotnet/csharplang/blob/main/spec/conversions.md#processing-of-user-defined-implicit-conversions
+
+The following bullet points
+
+*  Find the set of types, `D`, from which user-defined conversion operators will be considered. This set consists of `S0` (if `S0` is a class or struct), the base classes of `S0` (if `S0` is a class), and `T0` (if `T0` is a class or struct).
+*  Find the set of applicable user-defined and lifted conversion operators, `U`. This set consists of the user-defined and lifted implicit conversion operators declared by the classes or structs in `D` that convert from a type encompassing `S` to a type encompassed by `T`. If `U` is empty, the conversion is undefined and a compile-time error occurs.
+
+are adjusted as follows (additions/removals are in bold):
+
+*  Find the set of types, `D`, from which user-defined conversion operators will be considered. This set consists of `S0` (if `S0` is a class or struct), the base classes of `S0` (if `S0` is a class), and `T0` (if `T0` is a class or struct). **If `S0` is a type parameter with *effective base class* System.Object, System.ValueType, System.Array or System.Enum, interfaces from its *effective interface set* and their base interfaces are added to the set. If `T0` is a type parameter with *effective base class*  System.Object, System.ValueType, System.Array or System.Enum, interfaces from its *effective interface set* and their base interfaces are added to the set.**
+*  Find the set of applicable user-defined and lifted conversion operators, `U`. This set consists of the user-defined and lifted implicit conversion operators declared by the **~~classes or structs~~types** in `D` that convert from a type encompassing `S` to a type encompassed by `T`. If `U` is empty, the conversion is undefined and a compile-time error occurs.
+
+## Processing of user-defined explicit conversions
+https://github.com/dotnet/csharplang/blob/main/spec/conversions.md#processing-of-user-defined-explicit-conversions
+
+The following bullet points
+
+*  Find the set of types, `D`, from which user-defined conversion operators will be considered. This set consists of `S0` (if `S0` is a class or struct), the base classes of `S0` (if `S0` is a class), `T0` (if `T0` is a class or struct), and the base classes of `T0` (if `T0` is a class).
+*  Find the set of applicable user-defined and lifted conversion operators, `U`. This set consists of the user-defined and lifted implicit or explicit conversion operators declared by the classes or structs in `D` that convert from a type encompassing or encompassed by `S` to a type encompassing or encompassed by `T`. If `U` is empty, the conversion is undefined and a compile-time error occurs.
+
+are adjusted as follows (additions/removals are in bold):
+
+*  Find the set of types, `D`, from which user-defined conversion operators will be considered. This set consists of `S0` (if `S0` is a class or struct), the base classes of `S0` (if `S0` is a class), `T0` (if `T0` is a class or struct), and the base classes of `T0` (if `T0` is a class). **If `S0` is a type parameter with *effective base class* System.Object, System.ValueType, System.Array or System.Enum, interfaces from its *effective interface set* and their base interfaces are added to the set. If `T0` is a type parameter with *effective base class*  System.Object, System.ValueType, System.Array or System.Enum, interfaces from its *effective interface set* and their base interfaces are added to the set.**
+*  Find the set of applicable user-defined and lifted conversion operators, `U`. This set consists of the user-defined and lifted implicit or explicit conversion operators declared by the **~~classes or structs~~types** in `D` that convert from a type encompassing or encompassed by `S` to a type encompassing or encompassed by `T`. If `U` is empty, the conversion is undefined and a compile-time error occurs.
+
 
 # Drawbacks
 [drawbacks]: #drawbacks
@@ -227,9 +253,15 @@ Another *additional* feature would be to allow static members to be abstract and
 
 Called out above, but here's a list:
 
-- Operators `==` and `!=` as well as the implicit and explicit conversion operators are disallowed in interfaces today. Should they be disallowed as static abstract members as well?
+- Operators `==` and `!=` as well as the implicit and explicit conversion operators are disallowed in interfaces today. Should they be disallowed as static abstract members as well? Note, the current implementation is adjusted to allow them only in abstract form. If we don't want this behavior after all, there is work to disallow it.
 - Should the qualifying `I.` in an explicit operator implementation go before the `operator` keyword or the operator symbol (e.g. `+`) itself?
 - Should we relax the operator restrictions further so that the restricted operand can be of any type that derives from, or has one of some set of implicit conversions to the enclosing type?
+- The "Operator restrictions" section must provide more precise rules for: "These requirements need to be relaxed so that a restricted operand is allowed to be of a type parameter that is constrained to `T`." What type parameters are allowed, what exactly does it mean to be constraint to `T`, etc. The current implementation allows only type parameters that belong to the immediate contatining type and only those that have containing type as one of the directly specified type constraints (https://github.com/dotnet/roslyn/issues/53801). 
+
+Not called out above:
+
+- Confirm whether we would like to support use of static abstract methods declared in interfaces as operators in query expressions (https://github.com/dotnet/roslyn/issues/53796).
+- Confirm the rules outlined in "Processing of user-defined implicit conversions" and "Processing of user-defined explicit conversions" sections above.
 
 # Design meetings
 
