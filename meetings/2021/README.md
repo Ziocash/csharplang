@@ -1,50 +1,122 @@
 # Upcoming meetings for 2021
 
+All schedule items must have a public issue or checked in proposal that can be linked from the notes.
+
 ## Schedule ASAP
 
 ## Schedule when convenient
-
-- Feature specs and the C# Standard (Mads, Bill, Rex): https://github.com/dotnet/csharpstandard
-- Remove restriction that interpolations within a non-verbatim interpolated string cannot contain new-lines. (cyrusn) https://github.com/dotnet/csharplang/issues/4935
+- Open questions with `Length`/`Count` assumptions in context of list-patterns (Julien): https://github.com/dotnet/csharplang/issues/5137
 
 ## Recurring topics
 
 - *Triage championed features and milestones*
 - *Design review*
 
+## Oct 06, 2021
 
-## Sep 29, 2021
+- "PGI" with MVPs
 
-## Sep 27, 2021
+## Oct 04, 2021
 
-## Sep 22, 2021
-
-## Sep 20, 2021
-
-## Sep 15, 2021
-
-## Sep 13, 2021
-
-## Sep 8, 2021
-
-## Sep 1, 2021
-
-## Aug 30, 2021
-
-## Aug 23, 2021
-
-## Jul 26, 2021
-
-- Lambda conversion to System.Delegate (Chuck)
-- Using filename to inform speakable type for top-level statements (Julien)
-
-## Jul 19, 2021
-
-- Scope of global usings revisited (Daniel): https://github.com/dotnet/csharplang/blob/main/meetings/2021/LDM-2021-03-15.md#global-usings
+- *Design review*
 
 # C# Language Design Notes for 2021
 
 Overview of meetings and agendas for 2021
+
+## Sep 22, 2021
+
+[C# Language Design Notes for September 22nd, 2021](https://github.com/dotnet/csharplang/blob/main/meetings/2021/LDM-2021-09-22.md)
+
+1. Open questions in list patterns
+    1. Breaking change confirmation
+    2. Positional patterns on ITuple
+    3. Slicing rules
+    4. Slice syntax recommendations
+    5. Other list pattern features
+2. Nested members in `with` and object creation
+3. CallerIdentityAttribute
+4. Attributes on `Main` for top level programs
+
+## Sep 20, 2021
+
+[C# Language Design Notes for September 20th, 2021](https://github.com/dotnet/csharplang/blob/main/meetings/2021/LDM-2021-09-20.md)
+
+1. Lambda breaking changes
+2. Newlines in non-verbatim interpolated strings
+3. Object initializer event hookup
+4. Type alias improvements
+
+## Sep 15, 2021
+
+[C# Language Design Notes for September 15th, 2021](https://github.com/dotnet/csharplang/blob/main/meetings/2021/LDM-2021-09-15.md)
+
+* Feedback from the C# standardization committee
+* Permit pattern variables under disjunctive patterns
+
+## Sep 13, 2021
+
+[C# Language Design Notes for September 13th, 2021](https://github.com/dotnet/csharplang/blob/main/meetings/2021/LDM-2021-09-13.md)
+
+1. Feedback on static abstracts in interfaces
+
+## Sep 1, 2021
+
+[C# Language Design Notes for September 1st, 2021](https://github.com/dotnet/csharplang/blob/main/meetings/2021/LDM-2021-09-01.md)
+
+1. Lambda expression conversions to `Delegate`
+2. C# 11 Initialization Triage
+    1. Required properties
+    2. Primary constructors
+    3. Immutable collection initializers
+
+## Aug 30, 2021
+
+[C# Language Design Notes for August 30th, 2021](https://github.com/dotnet/csharplang/blob/main/meetings/2021/LDM-2021-08-30.md)
+
+1. C# 11 Initial Triage
+    1. Generic attributes
+    2. List patterns
+    3. Static abstracts in interfaces
+    4. Declarations under `or` patterns
+    5. Records and initialization
+    6. Discriminated unions
+    7. Params `Span<T>`
+    8. Statements as expressions
+    9. Expression trees
+    10. Type system extensions
+
+## Aug 25, 2021
+
+[C# Language Design Notes for August 25th, 2021](https://github.com/dotnet/csharplang/blob/main/meetings/2021/LDM-2021-08-25.md)
+
+1. Interpolated string handler user-defined conversion recommendations
+2. Interpolated string handler additive expressions
+
+## Aug 23, 2021
+
+[C# Language Design Notes for August 23rd, 2021](https://github.com/dotnet/csharplang/blob/main/meetings/2021/LDM-2021-08-23.md)
+
+1. Nullability differences in partial type base clauses
+2. Top-level statements default type accessibility
+3. Lambda expression and method group type inference issues
+    1. Better function member now ambiguous in some cases
+    2. Conversions from method group to `object`
+4. Interpolated string betterness in older language versions
+
+## Jul 26, 2021
+
+[C# Language Design Notes for July 26th, 2021](https://github.com/dotnet/csharplang/blob/main/meetings/2021/LDM-2021-07-26.md)
+
+1. Lambda conversion to System.Delegate
+2. Direct invocation of lambdas
+3. Speakable names for top-level statements
+
+## Jul 19, 2021
+
+[C# Language Design Notes for July 19th, 2021](https://github.com/dotnet/csharplang/blob/main/meetings/2021/LDM-2021-07-19.md)
+
+1. Global using scoping revisited
 
 ## Jul 12, 2021
 

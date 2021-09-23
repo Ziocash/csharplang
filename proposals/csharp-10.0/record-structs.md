@@ -59,7 +59,7 @@ The method can be declared explicitly. It is an error if the explicit declaratio
 If `Equals(R other)` is user-defined (not synthesized) but `GetHashCode` is not, a warning is produced.
 
 ```C#
-public bool Equals(R other);
+public readonly bool Equals(R other);
 ```
 
 The synthesized `Equals(R)` returns `true` if and only if for each instance field `fieldN` in the record struct
@@ -76,14 +76,14 @@ The `Equals` method called by the `==` operator is the `Equals(R other)` method 
 
 The record struct includes a synthesized override equivalent to a method declared as follows:
 ```C#
-public override bool Equals(object? obj);
+public override readonly bool Equals(object? obj);
 ```
 It is an error if the override is declared explicitly. 
 The synthesized override returns `other is R temp && Equals(temp)` where `R` is the record struct.
 
 The record struct includes a synthesized override equivalent to a method declared as follows:
 ```C#
-public override int GetHashCode();
+public override readonly int GetHashCode();
 ```
 The method can be declared explicitly.
 
@@ -135,6 +135,8 @@ The method does the following:
 
 For a member that has a value type, we will convert its value to a string representation using the most efficient method available to the target platform. At present that means calling `ToString` before passing to `StringBuilder.Append`.
 
+If the record's printable members do not include a readable property with a non-`readonly` `get` accessor, then the synthesized `PrintMembers` is `readonly`. There is no requirement for the record's fields to be `readonly` for the `PrintMembers` method to be `readonly`.
+
 The `PrintMembers` method can be declared explicitly.
 It is an error if the explicit declaration does not match the expected signature or accessibility.
 
@@ -142,6 +144,8 @@ The record struct includes a synthesized method equivalent to a method declared 
 ```C#
 public override string ToString();
 ```
+
+If the record struct's `PrintMembers` method is `readonly`, then the synthesized `ToString()` method is `readonly`.
 
 The method can be declared explicitly. It is an error if the explicit declaration does not match the expected signature or accessibility.
 
@@ -257,10 +261,12 @@ parameter declaration for each parameter of the primary constructor declaration.
 of the Deconstruct method has the same type as the corresponding parameter of the primary
 constructor declaration. The body of the method assigns each parameter of the Deconstruct method
 to the value from an instance member access to a member of the same name.
+If the instance members accessed in the body do not include a property with
+a non-`readonly` `get` accessor, then the synthesized `Deconstruct` method is `readonly`.
 The method can be declared explicitly. It is an error if the explicit declaration does not match
 the expected signature or accessibility, or is static.
 
-# Allow `with` expression on structs
+## Allow `with` expression on structs
 
 It is now valid for the receiver in a `with` expression to have a struct type.
 
@@ -272,9 +278,9 @@ For a receiver with struct type, the receiver is first copied, then each `member
 the same way as an assignment to a field or property access of the result of the conversion. 
 Assignments are processed in lexical order.
 
-# Improvements on records
+## Improvements on records
 
-## Allow `record class`
+### Allow `record class`
 
 The existing syntax for record types allows `record class` with the same meaning as `record`:
 
@@ -285,13 +291,13 @@ record_declaration
     ;
 ```
 
-## Allow user-defined positional members to be fields
+### Allow user-defined positional members to be fields
 
 See https://github.com/dotnet/csharplang/blob/master/meetings/2020/LDM-2020-10-05.md#changing-the-member-type-of-a-primary-constructor-parameter
 
 No auto-property is created if the record has or inherits an instance field with expected name and type.
 
-# Allow parameterless constructors and member initializers in structs
+## Allow parameterless constructors and member initializers in structs
 
 We are going to support both parameterless constructors and member initializers in structs.
 This will be specified in more details.
@@ -301,7 +307,7 @@ Allow parameterless ctors on structs and also field initializers (no runtime det
 We will enumerate scenarios where initializers aren't evaluated: arrays, generics, default, ...  
 Consider diagnostics for using struct with parameterless ctor in some of those cases?  
 
-# Open questions
+## Open questions
 
 - should we disallow a user-defined constructor with a copy constructor signature?
 - confirm that we want to disallow members named "Clone".
@@ -312,7 +318,7 @@ Consider diagnostics for using struct with parameterless ctor in some of those c
 - could field- or property-targeting attributes be placed in the positional parameter list?
 - how to place attributes on the properties of a record struct?  IDE has serialization types that would work nicely as record structs, but which need attributes on the members. Supporting `[property: DataMember(Order = 1)]` would solve this.
 
-## Answered
+### Answered
 
 - confirm that we want to keep PrintMembers design (separate method returning `bool`) (answer: yes)
 - confirm we won't allow `record ref struct` (issue with `IEquatable<RefStruct>` and ref fields) (answer: yes)

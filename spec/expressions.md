@@ -2700,16 +2700,15 @@ The predefined multiplication operators are listed below. The operators all comp
 
    The product is computed according to the rules of IEEE 754 arithmetic. The following table lists the results of all possible combinations of nonzero finite values, zeros, infinities, and NaN's. In the table, `x` and `y` are positive finite values. `z` is the result of `x * y`. If the result is too large for the destination type, `z` is infinity. If the result is too small for the destination type, `z` is zero.
 
-   |      |      |      |     |     |      |      |     |
-   |:----:|-----:|:----:|:---:|:---:|:----:|:----:|:----|
-   |      | +y   | -y   | +0  | -0  | +inf | -inf | NaN | 
-   | +x   | +z   | -z   | +0  | -0  | +inf | -inf | NaN | 
-   | -x   | -z   | +z   | -0  | +0  | -inf | +inf | NaN | 
-   | +0   | +0   | -0   | +0  | -0  | NaN  | NaN  | NaN | 
-   | -0   | -0   | +0   | -0  | +0  | NaN  | NaN  | NaN | 
-   | +inf | +inf | -inf | NaN | NaN | +inf | -inf | NaN | 
-   | -inf | -inf | +inf | NaN | NaN | -inf | +inf | NaN | 
-   | NaN  | NaN  | NaN  | NaN | NaN | NaN  | NaN  | NaN | 
+   |          | +y   | -y   | +0  | -0  | +inf | -inf | NaN | 
+   |:--------:|-----:|:----:|:---:|:---:|:----:|:----:|:----|
+   | **+x**   | +z   | -z   | +0  | -0  | +inf | -inf | NaN | 
+   | **-x**   | -z   | +z   | -0  | +0  | -inf | +inf | NaN | 
+   | **+0**   | +0   | -0   | +0  | -0  | NaN  | NaN  | NaN | 
+   | **-0**   | -0   | +0   | -0  | +0  | NaN  | NaN  | NaN | 
+   | **+inf** | +inf | -inf | NaN | NaN | +inf | -inf | NaN | 
+   | **-inf** | -inf | +inf | NaN | NaN | -inf | +inf | NaN | 
+   | **NaN**  | NaN  | NaN  | NaN | NaN | NaN  | NaN  | NaN | 
 
 *  Decimal multiplication:
 
@@ -2752,16 +2751,15 @@ The predefined division operators are listed below. The operators all compute th
 
    The quotient is computed according to the rules of IEEE 754 arithmetic. The following table lists the results of all possible combinations of nonzero finite values, zeros, infinities, and NaN's. In the table, `x` and `y` are positive finite values. `z` is the result of `x / y`. If the result is too large for the destination type, `z` is infinity. If the result is too small for the destination type, `z` is zero.
 
-   |      |      |      |      |      |      |      |      |
-   |:----:|:----:|:----:|:----:|:----:|:----:|:----:|:----:|
-   |      | +y   | -y   | +0   | -0   | +inf | -inf | NaN  | 
-   | +x   | +z   | -z   | +inf | -inf | +0   | -0   | NaN  | 
-   | -x   | -z   | +z   | -inf | +inf | -0   | +0   | NaN  | 
-   | +0   | +0   | -0   | NaN  | NaN  | +0   | -0   | NaN  | 
-   | -0   | -0   | +0   | NaN  | NaN  | -0   | +0   | NaN  | 
-   | +inf | +inf | -inf | +inf | -inf | NaN  | NaN  | NaN  | 
-   | -inf | -inf | +inf | -inf | +inf | NaN  | NaN  | NaN  | 
-   | NaN  | NaN  | NaN  | NaN  | NaN  | NaN  | NaN  | NaN  | 
+   |          | +y   | -y   | +0   | -0   | +inf | -inf | NaN  | 
+   |:--------:|:----:|:----:|:----:|:----:|:----:|:----:|:----:|
+   | **+x**   | +z   | -z   | +inf | -inf | +0   | -0   | NaN  | 
+   | **-x**   | -z   | +z   | -inf | +inf | -0   | +0   | NaN  | 
+   | **+0**   | +0   | -0   | NaN  | NaN  | +0   | -0   | NaN  | 
+   | **-0**   | -0   | +0   | NaN  | NaN  | -0   | +0   | NaN  | 
+   | **+inf** | +inf | -inf | +inf | -inf | NaN  | NaN  | NaN  | 
+   | **-inf** | -inf | +inf | -inf | +inf | NaN  | NaN  | NaN  | 
+   | **NaN**  | NaN  | NaN  | NaN  | NaN  | NaN  | NaN  | NaN  | 
 
 *  Decimal division:
 
@@ -2802,16 +2800,15 @@ The predefined remainder operators are listed below. The operators all compute t
 
    The following table lists the results of all possible combinations of nonzero finite values, zeros, infinities, and NaN's. In the table, `x` and `y` are positive finite values. `z` is the result of `x % y` and is computed as `x - n * y`, where `n` is the largest possible integer that is less than or equal to `x / y`. This method of computing the remainder is analogous to that used for integer operands, but differs from the IEEE 754 definition (in which `n` is the integer closest to `x / y`).
 
-   |      |      |      |      |      |      |      |      |
-   |:----:|:----:|:----:|:----:|:----:|:----:|:----:|:----:|
-   |      | +y   | -y   | +0   | -0   | +inf | -inf | NaN  | 
-   | +x   | +z   | +z   | NaN  | NaN  | x    | x    | NaN  | 
-   | -x   | -z   | -z   | NaN  | NaN  | -x   | -x   | NaN  | 
-   | +0   | +0   | +0   | NaN  | NaN  | +0   | +0   | NaN  | 
-   | -0   | -0   | -0   | NaN  | NaN  | -0   | -0   | NaN  | 
-   | +inf | NaN  | NaN  | NaN  | NaN  | NaN  | NaN  | NaN  | 
-   | -inf | NaN  | NaN  | NaN  | NaN  | NaN  | NaN  | NaN  | 
-   | NaN  | NaN  | NaN  | NaN  | NaN  | NaN  | NaN  | NaN  | 
+   |          | +y   | -y   | +0   | -0   | +inf | -inf | NaN  | 
+   |:--------:|:----:|:----:|:----:|:----:|:----:|:----:|:----:|
+   | **+x**   | +z   | +z   | NaN  | NaN  | x    | x    | NaN  | 
+   | **-x**   | -z   | -z   | NaN  | NaN  | -x   | -x   | NaN  | 
+   | **+0**   | +0   | +0   | NaN  | NaN  | +0   | +0   | NaN  | 
+   | **-0**   | -0   | -0   | NaN  | NaN  | -0   | -0   | NaN  | 
+   | **+inf** | NaN  | NaN  | NaN  | NaN  | NaN  | NaN  | NaN  | 
+   | **-inf** | NaN  | NaN  | NaN  | NaN  | NaN  | NaN  | NaN  | 
+   | **NaN**  | NaN  | NaN  | NaN  | NaN  | NaN  | NaN  | NaN  | 
 
 *  Decimal remainder:
 
@@ -2850,15 +2847,14 @@ The predefined addition operators are listed below. For numeric and enumeration 
 
    The sum is computed according to the rules of IEEE 754 arithmetic. The following table lists the results of all possible combinations of nonzero finite values, zeros, infinities, and NaN's. In the table, `x` and `y` are nonzero finite values, and `z` is the result of `x + y`. If `x` and `y` have the same magnitude but opposite signs, `z` is positive zero. If `x + y` is too large to represent in the destination type, `z` is an infinity with the same sign as `x + y`.
 
-   |      |      |      |      |      |      |      |
-   |:----:|:----:|:----:|:----:|:----:|:----:|:----:|
-   |      | y    | +0   | -0   | +inf | -inf | NaN  | 
-   | x    | z    | x    | x    | +inf | -inf | NaN  | 
-   | +0   | y    | +0   | +0   | +inf | -inf | NaN  | 
-   | -0   | y    | +0   | -0   | +inf | -inf | NaN  | 
-   | +inf | +inf | +inf | +inf | +inf | NaN  | NaN  | 
-   | -inf | -inf | -inf | -inf | NaN  | -inf | NaN  | 
-   | NaN  | NaN  | NaN  | NaN  | NaN  | NaN  | NaN  | 
+   |          | y    | +0   | -0   | +inf | -inf | NaN  | 
+   |:--------:|:----:|:----:|:----:|:----:|:----:|:----:|
+   | **x**    | z    | x    | x    | +inf | -inf | NaN  | 
+   | **+0**   | y    | +0   | +0   | +inf | -inf | NaN  | 
+   | **-0**   | y    | +0   | -0   | +inf | -inf | NaN  | 
+   | **+inf** | +inf | +inf | +inf | +inf | NaN  | NaN  | 
+   | **-inf** | -inf | -inf | -inf | NaN  | -inf | NaN  | 
+   | **NaN**  | NaN  | NaN  | NaN  | NaN  | NaN  | NaN  | 
 
 *  Decimal addition:
 
@@ -2943,15 +2939,14 @@ The predefined subtraction operators are listed below. The operators all subtrac
 
    The difference is computed according to the rules of IEEE 754 arithmetic. The following table lists the results of all possible combinations of nonzero finite values, zeros, infinities, and NaNs. In the table, `x` and `y` are nonzero finite values, and `z` is the result of `x - y`. If `x` and `y` are equal, `z` is positive zero. If `x - y` is too large to represent in the destination type, `z` is an infinity with the same sign as `x - y`.
 
-   |      |      |      |      |      |      |     |
-   |:----:|:----:|:----:|:----:|:----:|:----:|:---:|
-   |      | y    | +0   | -0   | +inf | -inf | NaN | 
-   | x    | z    | x    | x    | -inf | +inf | NaN | 
-   | +0   | -y   | +0   | +0   | -inf | +inf | NaN | 
-   | -0   | -y   | -0   | +0   | -inf | +inf | NaN | 
-   | +inf | +inf | +inf | +inf | NaN  | +inf | NaN | 
-   | -inf | -inf | -inf | -inf | -inf | NaN  | NaN | 
-   | NaN  | NaN  | NaN  | NaN  | NaN  | NaN  | NaN | 
+   |          | y    | +0   | -0   | +inf | -inf | NaN | 
+   |:--------:|:----:|:----:|:----:|:----:|:----:|:---:|
+   | **x**    | z    | x    | x    | -inf | +inf | NaN | 
+   | **+0**   | -y   | +0   | +0   | -inf | +inf | NaN | 
+   | **-0**   | -y   | -0   | +0   | -inf | +inf | NaN | 
+   | **+inf** | +inf | +inf | +inf | NaN  | +inf | NaN | 
+   | **-inf** | -inf | -inf | -inf | -inf | NaN  | NaN | 
+   | **NaN**  | NaN  | NaN  | NaN  | NaN  | NaN  | NaN | 
 
 *  Decimal subtraction:
 
@@ -3362,7 +3357,7 @@ where `x` is an expression of a nullable type, if operator overload resolution (
 The `is` operator is used to dynamically check if the run-time type of an object is compatible with a given type. The result of the operation `E is T`, where `E` is an expression and `T` is a type, is a boolean value indicating whether `E` can successfully be converted to type `T` by a reference conversion, a boxing conversion, or an unboxing conversion. The operation is evaluated as follows, after type arguments have been substituted for all type parameters:
 
 *  If `E` is an anonymous function, a compile-time error occurs
-*  If `E` is a method group or the `null` literal, of if the type of `E` is a reference type or a nullable type and the value of `E` is null, the result is false.
+*  If `E` is a method group or the `null` literal, or if the type of `E` is a reference type or a nullable type and the value of `E` is null, the result is false.
 *  Otherwise, let `D` represent the dynamic type of `E` as follows:
    * If the type of `E` is a reference type, `D` is the run-time type of the instance reference by `E`.
    * If the type of `E` is a nullable type, `D` is the underlying type of that nullable type.
