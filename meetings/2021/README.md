@@ -1,28 +1,70 @@
-# Upcoming meetings for 2021
-
-All schedule items must have a public issue or checked in proposal that can be linked from the notes.
-
-## Schedule ASAP
-
-## Schedule when convenient
-- Open questions with `Length`/`Count` assumptions in context of list-patterns (Julien): https://github.com/dotnet/csharplang/issues/5137
-
-## Recurring topics
-
-- *Triage championed features and milestones*
-- *Design review*
-
-## Oct 06, 2021
-
-- "PGI" with MVPs
-
-## Oct 04, 2021
-
-- *Design review*
-
 # C# Language Design Notes for 2021
 
 Overview of meetings and agendas for 2021
+
+## Dec 15, 2021
+
+[C# Language Design Notes for December 15th, 2021](https://github.com/dotnet/csharplang/blob/main/meetings/2021/LDM-2021-12-15.md)
+
+1. Required parsing
+2. Warnings for parameterless struct constructor
+
+## Dec 1, 2021
+
+[C# Language Design Notes for December 1st, 2021](https://github.com/dotnet/csharplang/blob/main/meetings/2021/LDM-2021-12-01.md)
+
+1. Roles and extensions
+
+## Nov 10, 2021
+
+[C# Language Design Notes for November 10th, 2021](https://github.com/dotnet/csharplang/blob/main/meetings/2021/LDM-2021-11-10.md)
+
+1. Self types
+
+## Nov 3, 2021
+
+[C# Language Design Notes for November 3rd, 2021](https://github.com/dotnet/csharplang/blob/main/meetings/2021/LDM-2021-11-03.md)
+
+1. Name shadowing in local functions
+2. `params Span<T>`
+
+## Nov 1, 2021
+
+[C# Language Design Notes for November 1st, 2021](https://github.com/dotnet/csharplang/blob/main/meetings/2021/LDM-2021-11-01.md)
+
+1. Order of evaluation for Index and Range
+2. Collection literals
+
+## Oct 27, 2021
+
+[C# Language Design Notes for October 27th, 2021](https://github.com/dotnet/csharplang/blob/main/meetings/2021/LDM-2021-10-27.md)
+
+1. UTF-8 String Literals
+2. Readonly modifiers for primary constructors
+
+## Oct 25, 2021
+
+[C# Language Design Notes for October 25th, 2021](https://github.com/dotnet/csharplang/blob/main/meetings/2021/LDM-2021-10-25.md)
+
+1. Required members
+2. Delegate type argument improvements
+
+## Oct 20, 2021
+
+[C# Language Design Notes for October 20th, 2021](https://github.com/dotnet/csharplang/blob/main/meetings/2021/LDM-2021-10-20.md)
+
+1. Open questions in list patterns
+    1. Types that define both Length and Count
+    2. Slices that return null
+2. Primary constructors
+
+## Oct 13, 2021
+
+[C# Language Design Notes for October 13th, 2021](https://github.com/dotnet/csharplang/blob/main/meetings/2021/LDM-2021-10-13.md)
+
+1. Revisiting DoesNotReturn
+2. Warning on lowercase type names
+3. Length pattern backcompat
 
 ## Sep 22, 2021
 

@@ -69,23 +69,28 @@ As a result, an error is produced for something like `case [.., p]: case [p]:` b
 
 If a slice subpattern matches a list or a length value, subpatterns are treated as if they were a direct subpattern of the containing list. For instance, `[..[1, 2, 3]]` subsumes a pattern of the form `[1, 2, 3]`.
 
-`Length` or `Count` properties are assumed to always return a non-negative value, if and only if the type is *indexable*. For instance, the pattern `{ Length: -1 }` can never match an array. The behavior of a pattern-matching operation is undefined if this assumption doesn't hold.
+The following assumptions are made on the members being used:
+
+- The property that makes the type *countable* is assumed to always return a non-negative value, if and only if the type is *indexable*. For instance, the pattern `{ Length: -1 }` can never match an array.
+- The member that makes the type *sliceable* is assumed to be well-behaved, that is, the return value is never null and that it is a proper subslice of the containing list. 
+
+The behavior of a pattern-matching operation is undefined if any of the above assumptions doesn't hold.
 
 #### Lowering
 
-A pattern of the form `expr is [1, 2, 3]` is equivalent to the following code (if compatible via implicit `Index` support):
+A pattern of the form `expr is [1, 2, 3]` is equivalent to the following code:
 ```cs
 expr.Length is 3
-&& expr[0] is 1
-&& expr[1] is 2
-&& expr[2] is 3
+&& expr[new Index(0, fromEnd: false)] is 1
+&& expr[new Index(1, fromEnd: false)] is 2
+&& expr[new Index(2, fromEnd: false)] is 3
 ```
 A *slice_pattern* acts like a proper discard i.e. no tests will be emitted for such pattern, rather it only affects other nodes, namely the length and indexer. For instance, a pattern of the form `expr is [1, .. var s, 3]`  is equivalent to the following code (if compatible via explicit `Index` and `Range` support):
 ```cs
 expr.Length is >= 2
-&& expr[new Index(0)] is 1
-&& expr[new Range(1, new Index(1, true))] is var s
-&& expr[new Index(1, true)] is 3
+&& expr[new Index(0, fromEnd: false)] is 1
+&& expr[new Range(new Index(1, fromEnd: false), new Index(1, fromEnd: true))] is var s
+&& expr[new Index(1, fromEnd: true)] is 3
 ```
 The *input type* for the *slice_pattern* is the return type of the underlying `this[Range]` or `Slice` method with two exceptions: For `string` and arrays, `string.Substring` and `RuntimeHelpers.GetSubArray` will be used, respectively.
 
