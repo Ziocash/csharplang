@@ -70,8 +70,8 @@ line_indicator
 Proposed:
 ```
 line_indicator
-    : '(' decimal_digit+ ',' decimal_digit+ ')' '-' '(' decimal_digit+ ',' decimal_digit+ ')' decimal_digit+ whitespace file_name
-    | '(' decimal_digit+ ',' decimal_digit+ ')' '-' '(' decimal_digit+ ',' decimal_digit+ ')' file_name
+    : '(' decimal_digit+ ',' decimal_digit+ ')' '-' '(' decimal_digit+ ',' decimal_digit+ ')' whitespace decimal_digit+ whitespace file_name
+    | '(' decimal_digit+ ',' decimal_digit+ ')' '-' '(' decimal_digit+ ',' decimal_digit+ ')' whitespace file_name
     | decimal_digit+ whitespace file_name
     | decimal_digit+
     | 'default'
@@ -130,10 +130,10 @@ For clarity the examples use `spanof('...')` and `lineof('...')` pseudo-syntax t
 Consider the following code with unmapped zero-based line numbers listed on the right:
 
 ```
-#line 1 10 1 15 "a"   // 3
-  A();B(              // 4
-);C();                // 5
-    D();              // 6
+#line (1,10)-(1,15) "a" // 3
+  A();B(                // 4
+);C();                  // 5
+    D();                // 6
  ```
 
 d = 3

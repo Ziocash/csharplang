@@ -273,7 +273,7 @@ We wish to ensure that no `ref` local variable, and no variable of `ref struct` 
   - No instance method declared in `object` or in `System.ValueType` but not overridden in a `ref struct` type may be called with a receiver of that `ref struct` type.
   - No instance method of a `ref struct` type may be captured by method conversion to a delegate type.
 
-- For a ref reassignment `ref e1 = ref e2`, the *ref-safe-to-escape* of `e2` must be at least as wide a scope as the *ref-safe-to-escape* of `e1`.
+- For a ref reassignment `e1 = ref e2`, the *ref-safe-to-escape* of `e2` must be at least as wide a scope as the *ref-safe-to-escape* of `e1`.
 
 - For a ref return statement `return ref e1`, the *ref-safe-to-escape* of `e1` must be *ref-safe-to-escape* from the entire method. (TODO: Do we also need a rule that `e1` must be *safe-to-escape* from the entire method, or is that redundant?)
 
@@ -294,6 +294,8 @@ We wish to ensure that no `ref` local variable, and no variable of `ref struct` 
 These explanations and samples help explain why many of the safety rules above exist
 
 ### Method Arguments Must Match
+<a name="method-arguments-must-match"></a>
+
 When invoking a method where there is an `out` or `ref` parameter that is a `ref struct` then all of the `ref struct` parameters need to have the same lifetime. This is necessary because C# must make all of its decisions around lifetime safety based on the information available in the signature of the method and the lifetime of the values at the call site. 
 
 When there are `ref` parameters that are `ref struct` then there is the potential that they could swap around their contents. Hence at the call site we must ensure all of these **potential** swaps are compatible. If the language didn't enforce that then it will allow for bad code like the following.

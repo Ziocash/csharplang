@@ -2,7 +2,7 @@ Utf8 Strings Literals
 ===
 
 ## Summary
-This proposal adds the ability to write UTF8 string literals in C# and have them automatically encoded into their `byte[]` representation.
+This proposal adds the ability to write UTF8 string literals in C# and have them automatically encoded into their UTF-8 `byte` representation.
 
 ## Motivation
 UTF8 is the language of the web and its use is necessary in significant portions of the .NET stack. While much of data comes in the form of `byte[]` off the network stack there is still significant uses of constants in the code. For example networking stack has to commonly write constants like `"HTTP/1.0\r\n"`, `" AUTH"` or . `"Content-Length: "`. 
@@ -28,73 +28,82 @@ To fix this we will allow for UTF8 literals in the language and encode them into
 
 ## Detailed design
 
-### Conversions between `string` constants and `byte` sequences
-
-The language will allow conversions between `string` constants and `byte` sequences where the text is converted into the equivalent UTF8 byte representation. Specifically the compiler will allow _string_constant_to_UTF8_byte_representation_conversion_ - implicit conversions from `string` constants to `byte[]`, `Span<byte>`, and `ReadOnlySpan<byte>`. 
-
-```c# 
-byte[] array = "hello";             // new byte[] { 0x68, 0x65, 0x6c, 0x6c, 0x6f }
-Span<byte> span = "dog";            // new byte[] { 0x64, 0x6f, 0x67 }
-ReadOnlySpan<byte> span = "cat";    // new byte[] { 0x63, 0x61, 0x74 }
-```
-
-When the input text for the conversion is a malformed UTF16 string then the language will emit an error:
-
-```c#
-const string text = "hello \uD801\uD802";
-byte[] bytes = text; // Error: the input string is not valid UTF16
-```
-
-The predominant usage of this feature is expected to be with literals but it will work with any `string` constant value.
-
-```c#
-const string data = "dog"
-ReadOnlySpan<byte> span = data;     // new byte[] { 0x64, 0x6f, 0x67 }
-```
-
-In the case of any constant operation on strings, such as `+`, the encoding to UTF8 will occur on the final `string` vs. happening for the individual parts and then concatenating the results. This ordering is important to consider because it can impact whether or not the conversion succeeds. 
-
-```c#
-const string first = "\uD83D";  // high surrogate
-const string second = "\uDE00"; // low surrogate
-ReadOnlySpan<byte> span = first + second;
-```
-
-The two parts here are invalid on their own as they are incomplete portions of a surrogate pair. Individually there is no correct translation to UTF8 but together they form a complete surrogate pair that can be successfully translated to UTF8.
-
-Once implemented string literals will have the same problem that other literals have in the language: what type they represent depends on how they are used. C# provides a literal suffix to disambiguate the meaning for other literals. For example developers can write `3.14f` to force the value to be a `float` or `1l` to force the value to be a `long`.
-
 ### `u8` suffix on string literals
 
-Similarly the language will provide the `u8` suffix on string literals to force the type to be UTF8.
+The language will provide the `u8` suffix on string literals to force the type to be UTF8.
+The suffix is case-insensitive, `U8` suffix will be supported and will have the same meaning as `u8` suffix.
 
-When the `u8` suffix is used the literal can still be converted to any of the allowed types: `byte[]`, `Span<byte>` or `ReadOnlySpan<byte>`. The natural type though will be `ReadOnlySpan<byte>`.
+When the `u8` suffix is used, the value of the literal is a ```ReadOnlySpan<byte>``` containing a UTF-8 byte representation of the string.
+A null terminator is placed beyond the last byte in memory (and outside the length of the ```ReadOnlySpan<byte>```) in order to handle some
+interop scenarios where the call expects null terminated strings.
 
 ```c#
-string s1 = "hello"u8;      // Error
-var s2 = "hello"u8;         // Okay and type is ReadOnlySpan<byte>
-Span<byte> s3 = "hello"u8;  // Okay
-byte[] s4 = "hello"u8;      // Okay
+string s1 = "hello"u8;             // Error
+var s2 = "hello"u8;                // Okay and type is ReadOnlySpan<byte>
+ReadOnlySpan<byte> s3 = "hello"u8; // Okay.
+byte[] s4 = "hello"u8;             // Error - Cannot implicitly convert type 'System.ReadOnlySpan<byte>' to 'byte[]'.
+byte[] s5 = "hello"u8.ToAray();    // Okay.
+Span<byte> s6 = "hello"u8;         // Error - Cannot implicitly convert type 'System.ReadOnlySpan<byte>' to 'System.Span<byte>'.
 ```
 
-While the inputs to these conversions are constants and the data is fully encoded at compile time, the conversion is **not** considered constant by the language. That is because arrays are not constant today. If the definition of `const` is expanded in the future to consider arrays then this conversion should also be considered. Practically though this means a UTF8 literal cannot be used as the default value of an optional parameter. 
+Since the literals would be allocated as global constants, the lifetime of the resulting `ReadOnlySpan<byte>` would not prevent it from being returned or passed around to elsewhere. However, certain contexts, most notably within async functions, do not allow locals of ref struct types, so there would be a usage penalty in those situations, with a `ToArray()` call or similar being required.
+
+A `u8` literal doesn't have a constant value. That is because ```ReadOnlySpan<byte>``` cannot be type of a constant today. If the definition of `const` is expanded
+in the future to consider ```ReadOnlySpan<byte>```, then this value should also be considered a constant. Practically though this means a `u8`
+literal cannot be used as the default value of an optional parameter.
 
 ```c#
 // Error: The argument is not constant
-void Write(ReadOnlySpan<byte> message = "missing") { ... } 
+void Write(ReadOnlySpan<byte> message = "missing"u8) { ... } 
 ```
+
+When the input text for the literal is a malformed UTF16 string, then the language will emit an error:
+
+```c#
+var bytes = "hello \uD801\uD802"u8; // Error: the input string is not valid UTF16
+```
+
+### Addition operator
+
+A new bullet point will be added to [§11.9.5 Addition operator](https://github.com/dotnet/csharpstandard/blob/draft-v7/standard/expressions.md#1195-addition-operator) as follows.
+
+- UTF8 byte representation concatenation:
+
+  ```csharp
+  ReadOnlySpan<byte> operator +(ReadOnlySpan<byte> x, ReadOnlySpan<byte> y);
+  ```
+
+  This binary `+` operator performs byte sequences concatenation and is applicable if and only if both operands are semantically UTF8 byte representations.
+  An operand is semantically a UTF8 byte representation when it is eiher a value of a `u8` literal, or a value produced by the UTF8 byte representation concatenation operator. 
+
+  The result of the UTF8 byte representation concatenation is a ```ReadOnlySpan<byte>``` that consists of the bytes of the left operand followed by the bytes of the right operand. A null terminator is placed beyond the last byte in memory (and outside the length of the ```ReadOnlySpan<byte>```) in order to handle some
+interop scenarios where the call expects null terminated strings.
+
+### Lowering
 
 The language will lower the UTF8 encoded strings exactly as if the developer had typed the resulting `byte[]` literal in code. For example:
 
 ```c#
-ReadOnlySpan<byte> span = "hello";
+ReadOnlySpan<byte> span = "hello"u8;
 
 // Equivalent to
 
-ReadOnlySpan<byte> span = new byte[] { 0x68, 0x65, 0x6c, 0x6c, 0x6f };
+ReadOnlySpan<byte> span = new ReadOnlySpan<byte>(new byte[] { 0x68, 0x65, 0x6c, 0x6c, 0x6f, 0x00 }).
+                               Slice(0,5); // The `Slice` call will be optimized away by the compiler.
 ```
 
 That means all optimizations that apply to the `new byte[] { ... }` form will apply to utf8 literals as well. This means the call site will be allocation free as C# will optimize this be stored in the `.data` section of the PE file.
+
+Multiple consecutive applications of UTF8 byte representation concatenation operators are collapsed into a single creation of `ReadOnlySpan<byte>` with byte array containing the final byte sequence.
+
+```c#
+ReadOnlySpan<byte> span = "h"u8 + "el"u8 + "lo"u8;
+
+// Equivalent to
+
+ReadOnlySpan<byte> span = new ReadOnlySpan<byte>(new byte[] { 0x68, 0x65, 0x6c, 0x6c, 0x6f, 0x00 }).
+                               Slice(0,5); // The `Slice` call will be optimized away by the compiler.
+```
 
 ## Drawbacks
 ### Relying on core APIs
@@ -137,9 +146,57 @@ It seems unlikely that we would regret the target type conversion between string
 
 It seems more likely that we'd regret the `u8` suffix pointing to `ReadOnlySpan<byte>` instead of `Utf8String`. It would be similar to how we regret that `stackalloc int[]` has a natural type of `int*` instead of `Span<int>`. This is not a deal breaker though, just an inconvenience.
 
+### Conversions between `string` constants and `byte` sequences
+
+The language will allow conversions between `string` constants and `byte` sequences where the text is converted into the equivalent UTF8 byte representation. Specifically the compiler will allow _string_constant_to_UTF8_byte_representation_conversion_ - implicit conversions from `string` constants to `byte[]`, `Span<byte>`, and `ReadOnlySpan<byte>`.
+A new bullet point will be added to the implicit conversions [§10.2](https://github.com/dotnet/csharpstandard/blob/draft-v6/standard/conversions.md#102-implicit-conversions) section. This conversion is not a standard conversion [§10.4](https://github.com/dotnet/csharpstandard/blob/draft-v6/standard/conversions.md#104-standard-conversions).
+
+```c# 
+byte[] array = "hello";             // new byte[] { 0x68, 0x65, 0x6c, 0x6c, 0x6f }
+Span<byte> span = "dog";            // new byte[] { 0x64, 0x6f, 0x67 }
+ReadOnlySpan<byte> span = "cat";    // new byte[] { 0x63, 0x61, 0x74 }
+```
+
+When the input text for the conversion is a malformed UTF16 string then the language will emit an error:
+
+```c#
+const string text = "hello \uD801\uD802";
+byte[] bytes = text; // Error: the input string is not valid UTF16
+```
+
+The predominant usage of this feature is expected to be with literals but it will work with any `string` constant value.
+A conversion from a `string` constant with `null` value will be supprted as well. The result of the conversion will be `default`
+value of the target type.
+
+```c#
+const string data = "dog"
+ReadOnlySpan<byte> span = data;     // new byte[] { 0x64, 0x6f, 0x67 }
+```
+
+In the case of any constant operation on strings, such as `+`, the encoding to UTF8 will occur on the final `string` vs. happening for the individual parts and then concatenating the results. This ordering is important to consider because it can impact whether or not the conversion succeeds. 
+
+```c#
+const string first = "\uD83D";  // high surrogate
+const string second = "\uDE00"; // low surrogate
+ReadOnlySpan<byte> span = first + second;
+```
+
+The two parts here are invalid on their own as they are incomplete portions of a surrogate pair. Individually there is no correct translation to UTF8 but together they form a complete surrogate pair that can be successfully translated to UTF8.
+
+The _string_constant_to_UTF8_byte_representation_conversion_ is not allowed in Linq Expression Trees.
+
+While the inputs to these conversions are constants and the data is fully encoded at compile time, the conversion is **not** considered constant by the language. That is because arrays are not constant today. If the definition of `const` is expanded in the future to consider arrays then these conversions should also be considered. Practically though this means a result of these conversions cannot be used as the default value of an optional parameter. 
+
+```c#
+// Error: The argument is not constant
+void Write(ReadOnlySpan<byte> message = "missing") { ... } 
+```
+
+Once implemented string literals will have the same problem that other literals have in the language: what type they represent depends on how they are used. C# provides a literal suffix to disambiguate the meaning for other literals. For example developers can write `3.14f` to force the value to be a `float` or `1l` to force the value to be a `long`.
+
 ## Unresolved questions
 
-### Conversions between a `string` constant with `null` value and `byte` sequences
+### (Resolved) Conversions between a `string` constant with `null` value and `byte` sequences
 
 Whether this conversion is supported and, if so, how it is performed is not specified.
 
@@ -147,15 +204,23 @@ Whether this conversion is supported and, if so, how it is performed is not spec
 
 Allow implicit conversions from a `string` constant with `null` value to `byte[]`, `Span<byte>`, and `ReadOnlySpan<byte>`. The result of the conversion is `default` value of the target type.
 
-### Where does _string_constant_to_UTF8_byte_representation_conversion_ belong?
+*Resolution:*
 
-Is _string_constant_to_UTF8_byte_representation_conversion_ a bullet point in https://github.com/dotnet/csharplang/blob/main/spec/conversions.md#implicit-conversions section on its own, or is it part of https://github.com/dotnet/csharplang/blob/main/spec/conversions.md#implicit-constant-expression-conversions, or does it belong to some other existing implicit conversions group?
+The proposal is approved - https://github.com/dotnet/csharplang/blob/main/meetings/2022/LDM-2022-01-26.md#conversions-from-null-literals.
+
+### (Resolved) Where does _string_constant_to_UTF8_byte_representation_conversion_ belong?
+
+Is _string_constant_to_UTF8_byte_representation_conversion_ a bullet point in the implicit conversions [§10.2](https://github.com/dotnet/csharpstandard/blob/draft-v6/standard/conversions.md#102-implicit-conversions) section on its own, or is it part of [§10.2.11](https://github.com/dotnet/csharpstandard/blob/draft-v6/standard/conversions.md#10211-implicit-constant-expression-conversions), or does it belong to some other existing implicit conversions group?
 
 *Proposal:* 
 
-It is a new bullet point in https://github.com/dotnet/csharplang/blob/main/spec/conversions.md#implicit-conversions, similar to "Implicit interpolated string conversions" or "Method group conversions". It doesn't feel like it belongs to "Implicit constant expression conversions" because, even though the source is a constant expression, the result is never a constant expression. Also, "Implicit constant expression conversions" are considered to be "Standard implicit conversions" (https://github.com/dotnet/csharplang/blob/main/spec/conversions.md#standard-implicit-conversions), which is likely to lead to non-trivial behavior changes involving user-defined conversions.
+It is a new bullet point in implicit conversions [§10.2](https://github.com/dotnet/csharpstandard/blob/draft-v6/standard/conversions.md#102-implicit-conversions), similar to "Implicit interpolated string conversions" or "Method group conversions". It doesn't feel like it belongs to "Implicit constant expression conversions" because, even though the source is a constant expression, the result is never a constant expression. Also, "Implicit constant expression conversions" are considered to be "Standard implicit conversions" [§10.4.2](https://github.com/dotnet/csharpstandard/blob/draft-v6/standard/conversions.md#1042-standard-implicit-conversions), which is likely to lead to non-trivial behavior changes involving user-defined conversions.
 
-### Is _string_constant_to_UTF8_byte_representation_conversion_ a standard conversion
+*Resolution:*
+
+We will introduce a new conversion kind for string constant to UTF-8 bytes - https://github.com/dotnet/csharplang/blob/main/meetings/2022/LDM-2022-01-26.md#conversion-kinds
+
+### (Resolved) Is _string_constant_to_UTF8_byte_representation_conversion_ a standard conversion
 
 In addition to "pure" Standard Conversions (the standard conversions are those pre-defined conversions that can occur as part of a user-defined conversion), compiler also treats some predefined conversions as "somewhat" standard. For example, an implicit interpolated string conversion can occur as part of a user-defined conversion if there is an explicit cast to the target type in code. As if it is a Standard Explicit Conversion, even though it is an implicit conversion not explicitly included into the set of standard implicit or explicit conversions. For example:
 
@@ -179,7 +244,11 @@ class C1
 
 The new conversion is not a standard conversion. This will avoid non-trivial behavior changes involving user-defined conversions. For example, we won't need to worry about user-defined cinversions under implicit tuple literal conversions, etc.
 
-### Linq Expression Tree conversion
+*Resolution:*
+
+Not a standard conversion, for now - https://github.com/dotnet/csharplang/blob/main/meetings/2022/LDM-2022-01-26.md#implicit-standard-conversion.
+
+### (Resolved) Linq Expression Tree conversion
 
 Should _string_constant_to_UTF8_byte_representation_conversion_ be allowed in context of a Linq Expression Tree conversion?
 We can disallow it for now, or we could simply include the "lowered" form into the tree. For example:
@@ -194,7 +263,11 @@ What about string literals with `u8` suffix? We could surface those as byte arra
 Expression<Func<byte[]>> x = () => "hello"u8;           // () => new [] {104, 101, 108, 108, 111}
 ```
 
-### The natural type of a string literal with `u8` suffix
+*Resolution:*
+
+Disallow in Linq Expression Trees - https://github.com/dotnet/csharplang/blob/main/meetings/2022/LDM-2022-01-26.md#expression-tree-representation.
+
+### (Resolved) The natural type of a string literal with `u8` suffix
 
 The "Detailed design" section says: "The natural type though will be `ReadOnlySpan<byte>`." At the same time: "When the `u8` suffix is used the literal can still be converted to any of the allowed types: `byte[]`, `Span<byte>` or `ReadOnlySpan<byte>`." 
 
@@ -230,8 +303,13 @@ However, as with any user-defined conversion, an explicit cast can be used to ma
 
 It feels like all motivating scenarios are going to be addressed with `byte[]` as the natural type, but the language rules and implementation will be significantly simpler.
 
+*Resolution:*
 
-### Depth of the conversion
+The proposal is approved - https://github.com/dotnet/csharplang/blob/main/meetings/2022/LDM-2022-01-26.md#natural-type-of-u8-literals.
+We will likely want to have a deeper debate about whether `u8` string literals should have a type of a mutable array, but we don't
+think that debate is necessary for now.
+
+### (Resolved) Depth of the conversion
 Will it also work anywhere that a byte[] could work? Consider: 
 
 ```c# 
@@ -247,7 +325,11 @@ The second example is hard to make work because it requires conversions in both 
 
 Don't do anything special.
 
-### Overload resolution breaks
+*Resolution:*
+
+No new conversion targets added for now https://github.com/dotnet/csharplang/blob/main/meetings/2022/LDM-2022-01-26.md#conversion-depth.
+
+### (Resolved) Overload resolution breaks
 
 The following API would become ambiguous:
 
@@ -261,7 +343,7 @@ What should we do to address this?
 
 *Proposal:* 
 
-Similar to https://github.com/dotnet/csharplang/blob/main/proposals/csharp-10.0/lambda-improvements.md#overload-resolution, [Better function member](https://github.com/dotnet/csharplang/blob/main/spec/expressions.md#better-function-member) is updated to prefer members where none of the conversions involved require converting `string` constants to UTF8 `byte` sequences.
+Similar to https://github.com/dotnet/csharplang/blob/main/proposals/csharp-10.0/lambda-improvements.md#overload-resolution, Better function member ([§11.6.4.3](https://github.com/dotnet/csharpstandard/blob/draft-v6/standard/expressions.md#11643-better-function-member)) is updated to prefer members where none of the conversions involved require converting `string` constants to UTF8 `byte` sequences.
 
 > #### Better function member
 > ...
@@ -318,11 +400,19 @@ is going to silently print "array" instead of "object".
 
 Are we Ok with this behavior? Should it be documented as a breaking change? Perhaps we could complicate the new rule to dig into the tuple literal conversions.
 
-### Should `u8` suffix be case-insensitive?
+*Resolution:*
+
+The prototype will not adjust any rules here, so we can hopefully see what breaks in practice - https://github.com/dotnet/csharplang/blob/main/meetings/2022/LDM-2022-01-26.md#breaking-changes.
+
+### (Resolved) Should `u8` suffix be case-insensitive?
 
 *Proposal:* 
 
 Support `U8` suffix as well for consistency with numeric suffixes.
+
+*Resolution:*
+
+Approved - https://github.com/dotnet/csharplang/blob/main/meetings/2022/LDM-2022-01-26.md#suffix-case-sensitivity.
 
 ## Examples today
 Examples of where runtime has manually encoded the UTF8 bytes today
@@ -342,4 +432,6 @@ Examples where we leave perf on the table
 
 ## Design meetings
 
-<!-- Link to design notes that affect this proposal, and describe in one sentence for each what changes they led to. -->
+https://github.com/dotnet/csharplang/blob/main/meetings/2022/LDM-2022-01-26.md
+https://github.com/dotnet/csharplang/blob/main/meetings/2022/LDM-2022-04-18.md
+https://github.com/dotnet/csharplang/blob/main/meetings/2022/LDM-2022-06-06.md

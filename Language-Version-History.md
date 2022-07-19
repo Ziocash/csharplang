@@ -3,7 +3,8 @@ Features Added in C# Language Versions
 
 # C# 10.0 - .NET 6 and Visual Studio 2022 version 17.0
 
-- [Record structs](https://github.com/dotnet/csharplang/blob/master/proposals/csharp-10.0/record-structs.md) and `with` expressions on structs (`record struct Point(int X, int Y);`, `var newPoint = point with { X = 100 };`).
+- [Record structs](https://github.com/dotnet/csharplang/blob/master/proposals/csharp-10.0/record-structs.md) (`record struct Point(int X, int Y);`, `var newPoint = point with { X = 100 };`).
+- [With expression](https://github.com/dotnet/csharplang/blob/main/proposals/csharp-10.0/record-structs.md#allow-with-expression-on-structs) on structs and anonymous types.
 - [Global using directives](https://github.com/dotnet/csharplang/blob/master/proposals/csharp-10.0/GlobalUsingDirective.md): `global using` directives avoid repeating the same `using` directives across many files in your program.
 - [Improved definite assignment](https://github.com/dotnet/csharplang/blob/main/proposals/csharp-10.0/improved-definite-assignment.md): definite assignment and nullability analysis better handle common patterns such as `dictionary?.TryGetValue(key, out value) == true`.
 - [Constant interpolated strings](https://github.com/dotnet/csharplang/blob/main/proposals/csharp-10.0/constant_interpolated_strings.md): interpolated strings composed of constants are themselves constants.
@@ -95,7 +96,7 @@ Features Added in C# Language Versions
 - [Throw expressions](https://github.com/dotnet/csharplang/blob/master/proposals/csharp-7.0/throw-expression.md)
 
 # [C# 6](https://github.com/dotnet/roslyn/blob/master/docs/wiki/New-Language-Features-in-C%23-6.md) - Visual Studio 2015
-- [Draft Specification online](https://github.com/dotnet/csharplang/blob/master/spec/README.md)
+- [Draft Specification online](https://github.com/dotnet/csharpstandard/blob/draft-v6/standard/README.md)
 - Compiler-as-a-service (Roslyn)
 - [Import of static type members into namespace](https://docs.microsoft.com/dotnet/csharp/language-reference/keywords/using-static)
 - [Exception filters](https://docs.microsoft.com/dotnet/csharp/language-reference/keywords/when)

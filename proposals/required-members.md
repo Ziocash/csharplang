@@ -108,164 +108,61 @@ public class C
 }
 ```
 
-`required` is only valid in `class`, `struct`, and `record` types. It is not valid in `interface` types.
+`required` is only valid in `class`, `struct`, and `record` types. It is not valid in `interface` types. `required` cannot be combined with the following modifiers:
 
-### `init` Clauses
+* `fixed`
+* `ref readonly`
+* `ref`
+* `const`
+* `static`
 
-A constructor can remove a required member from its contract by adding an `init` clause that specifies the name of the member to remove. For example:
+`required` is not allowed to be applied to indexers.
 
-```cs
-public class C
-{
-    public required int Prop1 { get; init; }
-    public required int Prop2 { get; init; }
+The compiler will issue a warning when `Obsolete` is applied to a required member of a type and:
 
-    // Advertises that just Prop1 is required.
-    public C() : init(Prop2)
-    {
-        Prop2 = 2;
-        Console.WriteLine($"Prop2 is {Prop2}")
-    }
-}
-```
+1. The type is not marked `Obsolete`, or
+2. Any constructor not attributed with `SetsRequiredMembersAttribute` is not marked `Obsolete`.
 
-An init clause can also provide the initialization value for the property inline. These assignments are run before the body of the constructor is executed, after the base call
-if one exists:
+### `SetsRequiredMembersAttribute`
 
-```cs
-public class C
-{
-    public required int Prop1 { get; init; }
-    public required int Prop2 { get; init; }
+All constructors in a type with required members, or whose base type specifies required members, must have those members set by a consumer when that constructor is called. In order to
+exempt constructors from this requirement, a constructor can be attributed with `SetRequiredMembersAttribute`, which removes these requirements. The constructor body is not validated
+to ensure that it definitely sets the required members of the type.
 
-    // Sets Prop2 to 2 before the constructor body is run
-    public C() : init(Prop2 = 2)
-    {
-        Console.WriteLine($"Prop2 is {Prop1}")
-    }
-}
-```
+`SetsRequiredMembersAttribute` removes _all_ requirements from a constructor, and those requirements are not checked for validity in any way. NB: this is the escape hatch if inheriting
+from a type with an invalid required members list is necessary: mark the constructor of that type with `SetsRequiredMembersAttribute`, and no errors will be reported.
 
-An init clause can remove all requirements by using the `init required` shorthand:
+If a constructor `C` chains to a `base` or `this` constructor that is attributed with `SetsRequiredMembersAttribute`, `C` must also be attributed with `SetsRequiredMembersAttribute`.
 
-```cs
-public class C
-{
-    public required int Prop1 { get; init; }
-    public required int Prop2 { get; init; }
+For record types, we will emit `SetsRequiredMembersAttribute` on the synthesized copy constructor of a record if the record type or any of its base types have required members.
 
-    // Advertises that there are no requirements
-    public C() : init required
-    {
-        Prop1 = 1;
-        Prop2 = 2;
-    }
-}
-```
+NB: An earlier version of this proposal had a larger metalanguage around initialization, allowing adding and removing individual required members from a constructor, as well as validation
+that the constructor was setting all required members. This was deemed too complex for the initial release, and removed. We can look at adding more complex contracts and modifications as
+a later feature.
 
-_required\_member\_lists_ chain across a type hierarchy. A constructor's _contract_ not only includes the required members from the current type, but also the required members
-from the base type and any interfaces that it implements. If derived constructor calls a base constructor that removes some of those members from the list, the derived constructor
-also removes those members from the list.
+### Enforcement
 
-```cs
-public class Base
-{
-    public required int Prop1 { get; init; }
-    public required int Prop2 { get; init; }
+For every constructor `Ci` in type `T` with required members `R`, consumers calling `Ci` must do one of:
 
-    public Base() : init(Prop1 = 1) {}
-}
+* Set all members of `R` in an _object\_initializer_ on the _object\_creation\_expression_,
+* Or set all members of `R` via the _named\_argument\_list_ section of an _attribute\_target_.
 
-public class Derived
-{
-    public required int Prop3 { get; set; }
-    public required int Prop4 { get; set; }
+unless `Ci` is attributed with `SetsRequiredMembers`.
 
-    // Only advertises that Prop2 and Prop3 are required, because `base()` removed Prop1 from the list, and the init clause removes Prop4
-    public Derived : base() init(Prop4 = 4) { }
-}
-```
-
-### Initialization Requirement
-
-Members specified in an init clause must be definitely assigned at the end of the constructor body. If they are not, an error is produced. To support more complicated
-initialization logic, this error can be suppressed using the `!` operator:
-
-```cs
-public class C
-{
-    public required int Prop { get; set; }
-
-    // Error: Prop is not definitely assigned at the end of the constructor body
-    public C(int param) : init(Prop)
-    {
-        Initialize(param);
-    }
-
-    // No error: Prop! suppresses it
-    public C() : init(Prop!)
-        => Initialize(1);
-
-    public void Initialize(int param) => Prop = param;
-}
-```
-
-The `!` operator can also be applied to `init required`, to suppress the checking for all required properties on a type.
-
-```cs
-public class C
-{
-    public required int Prop1 { get; init; }
-    public required int Prop2 { get; init; }
-
-    // No errors: init required! suppresses
-    public C() : init required! {}
-}
-```
-
-#### Grammar
-
-The grammar for a `constructor_initializer` is modified as follows:
-
-```antlr
-constructor_initializer
-    : ':' constructor_chain
-    | ':' init_clause
-    | ':' constructor_chain init_clause
-    ;
-
-constructor_chain
-    : 'base' '(' argument_list? ')'
-    | 'this' '(' argument_list? ')'
-    ;
-
-init_clause
-    : 'init' '(' init_argument_list ')'
-    | 'init' 'required' '!'?
-    ;
-
-init_argument_list
-    : init_argument (',' init_argument)*
-    ;
-
-init_argument
-    : identifier init_argument_initializer?
-    | identifier '!'
-    ;
-
-init_argument_initializer
-    : '=' expression
-    ;
-```
+If the current context does not permit an _object\_initializer_ or is not an _attribute\_target_, and `Ci` is not attributed with `SetsRequiredMembers`, then it is an error to call `Ci`.
 
 ### `new()` constraint
 
 A type with a parameterless constructor that advertises a _contract_ is not allowed to be substituted for a type parameter constrained to `new()`, as there is no way
 for the generic instantiation to ensure that the requirements are satisfied.
 
-### Overriding, Hiding, and Inheriting
+### Accessibility
 
-It is an error to mark a member required if the member is less accessible than the member's containing type. This means the following cases are not allowed:
+It is an error to mark a member required if the member cannot be set in any context where the containing type is visible.
+* If the member is a field, it cannot be `readonly`.
+* If the member is a property, it must have a setter or initer at least as accessible as the member's containing type.
+
+This means the following cases are not allowed:
 
 ```cs
 interface I
@@ -274,17 +171,28 @@ interface I
 }
 public class Base
 {
-    public virtual int Prop2 { get; }
+    public virtual int Prop2 { get; set; }
 
     protected required int _field; // Error: _field is not at least as visible as Base. Open question below about the protected constructor scenario
+
+    public required readonly int _field2; // Error: required fields cannot be readonly
     protected Base() { }
+
+    protected class Inner
+    {
+        protected required int PropInner { get; set; } // Error: PropInner cannot be set inside Base or Derived
+    }
 }
 public class Derived : Base, I
 {
     required int I.Prop1 { get; } // Error: explicit interface implementions cannot be required as they cannot be set in an object initializer
 
-    public required override int Prop2 { get; } // Error: this property is hidden by Derived.Prop2 and cannot be set in an object initializer
+    public required override int Prop2 { get; set; } // Error: this property is hidden by Derived.Prop2 and cannot be set in an object initializer
     public new int Prop2 { get; }
+
+    public required int Prop3 { get; } // Error: Required member must have a setter or initer
+
+    public required int Prop4 { get; internal set; } // Error: Required member setter must be at least as visible as the constructor of Derived
 }
 ```
 
@@ -296,130 +204,72 @@ unrequiring a property with an override in the future, we have design space to d
 Overrides are allowed to mark a member `required` where it was not `required` in the base type. A member so-marked is added to the required members
 list of the derived type.
 
+Types are allowed to override required virtual properties. This means that if the base virtual property has storage, and the derived type tries to
+access the base implementation of that property, they could observe uninitialized storage. NB: This is a general C# anti-pattern, and we don't think that
+this proposal should attempt to address it.
+
+### Effect on nullable analysis
+
+Members that are marked `required` are not required to be initialized to a non-nullable state at the end of a constructor. These members are additionally considered by nullable analysis to
+be maybe-null at the beginning of any constructor in a type, unless chaining to a `this` or `base` constructor that is attributed with `SetsRequiredMembersAttribute`.
+
+NB: `SetsRequiredMembersAttribute` does not bring back nullable warnings at the end of a constructor for members, as it is an escape hatch intended to inform the compiler to stop enforcing things.
+
 ### Metadata Representation
 
 The following 2 attributes are known to the C# compiler and required for this feature to function:
 
 ```cs
-namespace System.Runtime.CompilerServices;
-
-[AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, AllowMultiple = false)]
-public sealed class RequiredMembersAttribute : Attribute
+namespace System.Runtime.CompilerServices
 {
-    public RequiredMembersAttribute(string[] members) => Members = members;
-    public string[] Members { get; }
-}
-
-[AttributeUsage(AttributeTargets.Constructor)]
-public sealed class NoRequiredMembersAttribute : Attribute
-{
-    public NoRequiredMembersAttribute() {}
-}
-```
-
-It is an error to manually apply `RequiredMembersAttribute` to a type.
-
-All members that are required by a type are listed in a `RequiredMembersAttribute` on the type. Members from any base type are not included, except
-when an override adds `required` to a member that was not `required` in the base type. As these members can only be fields or properties, duplicate
-names cannot exist.
-
-Any constructor in a type with `required` members that does not have `NoRequiredMembers` applied to it is marked with an `Obsolete` attribute with
-the string `"Types with required members are not supported in this version of your compiler"`, and the attribute is marked as an error, to prevent
-any older compilers from using these constructors. We don't use a `modreq` here because it is a goal to maintain binary compat: if the last `required`
-property was removed from a type, the compiler would no longer synthesize this `modreq`, which is a binary-breaking change and all consumers would
-need to be recompiled. A compiler that understands `required` members will ignore this obsolete attribute. Note that members can come from base types
-as well: even if there are no new `required` members in the current type, if any base type has `required` members, this `Obsolete` attribute will be
-generated. If the constructor already has an `Obsolete` attribute, no additional attribute will be generated. If a by-ref-like type also has `required`
-members, the generated `Obsolete` attribute will reference the `required` error message, under the assumption that if a compiler is new enough to
-understand `required` properties, it will also understand by-ref-like types.
-
-To build the full list of `required` members for a given type `T`, including all base types, all the `RequiredMembersAttribute`s from `T` and its
-base type `Tb` (recursively until reaching `System.Object`) are collected. At every `Ti`, if it has a `RequiredMembersAttribute` with members `R1`..`Rn`,
-the following algorithm is performed:
-
-1. Perform standard member lookup on `Ti` for name `Ri` with 0 arguments.
-2. If this lookup was ambiguous or did not produce a single field or property result, an error occurs and the required member list of `T` cannot be
-determined. No further steps are taken, and calling any constructor on `T` not marked with a `NoRequiredMembersAttribute` issues an error.
-3. Otherwise, the result of the member lookup is added to `T`'s list of required members.
-
-## Open Questions
-
-### Accessibility requirements and `init`
-
-In versions of this proposal with the `init` clause, we talked about being able to have the following scenario:
-
-```cs
-public class Base
-{
-    protected required int _field;
-
-    protected Base() {} // Contract required that _field is set
-}
-public class Derived : Base
-{
-    public Derived() : init(_field = 1) // Contract is fulfilled and _field is removed from the required members list
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
+    public sealed class RequiredMemberAttribute : Attribute
     {
+        public RequiredMemberAttribute() {}
+    }
+}
+
+namespace System.Diagnostics.CodeAnalysis
+{
+    [AttributeUsage(AttributeTargets.Constructor, AllowMultiple = false, Inherited = false)]
+    public sealed class SetsRequiredMembersAttribute : Attribute
+    {
+        public SetsRequiredMembersAttribute() {}
     }
 }
 ```
 
-However, we have removed the `init` clause from the proposal at this point, so we need to decide whether to allow this scenario in a limited fashion. The options we
-have are:
+It is an error to manually apply `RequiredMemberAttribute` to a type.
 
-1. Disallow the scenario. This is the most conservative approach, and the rules in the [OHI](#overriding-hiding-and-inheriting) are currently written with this assumption
-in mind. The rule is that any member that is required must be at least as visible as its containing type.
-2. Require that all constructors are either:
-    1. No more visible than the least-visible required member.
-    2. Have the `NoRequiredMembersAttribute` applied to the constructor.
-These would ensure that anyone who can see a constructor can either set all the things it exports, or there is nothing to set. This could be useful for types that are
-only ever created via static `Create` methods or similar builders, but the utility seems overall limited.
-3. Readd a way to remove specific parts of the contract to the proposal, as discussed in [LDM](https://github.com/dotnet/csharplang/blob/main/meetings/2021/LDM-2021-10-25.md)
-previously.
+Any member that is marked `required` has a `RequiredMemberAttribute` applied to it. In addition, any type that defines such members is marked with
+`RequiredMemberAttribute`, as a marker to indicate that there are required members in this type. Note that if type `B` derives from `A`, and `A`
+defines `required` members but `B` does not add any new or override any existing `required` members, `B` will not be marked with a `RequiredMemberAttribute`.
+To fully determine whether there are any required members in `B`, checking the full inheritance hierarchy is necessary.
 
-### Override rules
+Any constructor in a type with `required` members that does not have `SetsRequiredMembersAttribute` applied to it is marked with two attributes:
+1. `System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute` with the feature name `"RequiredMembers"`.
+2. `System.ObsoleteAttribute` with the string `"Types with required members are not supported in this version of your compiler"`, and the attribute is
+marked as an error, to prevent any older compilers from using these constructors.
 
-The current spec says that the `required` keyword needs to be copied over and that overrides can make a member _more_ required, but not less. Is that what we want to do?
-Allowing removal of requirements needs more contract modification abilities than we are currently proposing.
+We don't use a `modreq` here because it is a goal to maintain binary compat: if the last `required` property was removed from a type, the compiler would no
+longer synthesize this `modreq`, which is a binary-breaking change and all consumers would need to be recompiled. A compiler that understands `required`
+members will ignore this obsolete attribute. Note that members can come from base types as well: even if there are no new `required` members in the current
+type, if any base type has `required` members, this `Obsolete` attribute will be generated. If the constructor already has an `Obsolete` attribute, no
+additional `Obsolete` attribute will be generated.
 
-### Alternative metadata representation
+We use both `ObsoleteAttribute` and `CompilerFeatureRequiredAttribute` because the latter is new this release, and older compilers don't understand it. In the
+future, we may be able to drop the `ObsoleteAttribute` and/or not use it to protect new features, but for now we need both for full protection.
 
-We could also take a different approach to metadata representation, taking a page from extension methods. We could put a `RequiredMemberAttribute` on the type to indicate
-that the type contains required members, and then put a `RequiredMemberAttribute` on each member that is required. This would simplify the lookup sequence (no need to do
-member lookup, just look for members with the attribute).
+To build the full list of `required` members `R` for a given type `T`, including all base types, the following algorithm is run:
 
-### Metadata Representation
+1. For every `Tb`, starting with `T` and working through the base type chain until `object` is reached.
+2. If `Tb` is marked with `RequiredMemberAttribute`, then all members of `Tb` marked with `RequiredMemberAttribute` are gathered into `Rb`
+    1. For every `Ri` in `Rb`, if `Ri` is overridden by any member of `R`, it is skipped.
+    2. Otherwise, if any `Ri` is hidden by a member of `R`, then the lookup of required members fails and no further steps are taken. Calling any
+    constructor of `T` not attributed with `SetsRequiredMembers` issues an error.
+    3. Otherwise, `Ri` is added to `R`.
 
-The [Metadata Representation](#metadata-representation) needs to be approved. We additionally need to decide whether these attributes should be included in the BCL.
-
-1. For `RequiredMembersAttribute`, this attribute is more akin to the general embedded attributes we use for nullable/nint/tuple member names, and will not be manually
-applied by the user in C#. It's possible that other languages might want to manually apply this attribute, however.
-2. `NoRequiredMembersAttribute`, on the other hand, is directly used by consumers, and thus should likely be in the BCL.
-
-If we go with the alternative representation in the previous section, that might change the calculus on `RequiredMemberAttribute`: instead of being similar to the general
-embedded attributes for `nint`/nullable/tuple member names, it's closer to `System.Runtime.CompilerServices.ExtensionAttribute`, which has been in the framework since
-extension methods shipped.
-
-### Warning vs Error
-
-Should not setting a required member be a warning or an error? It is certainly possible to trick the system, via `Activator.CreateInstance(typeof(C))` or similar, which
-means we may not be able to fully guarantee all properties are always set. We also allow suppression of the diagnostics at the constructor-site by using the `!`, which
-we generally do not allow for errors. However, the feature is similar to readonly fields or init properties, in that we hard error if users attempt to set such a member
-after initialization, but they can be circumvented by reflection.
-
-### "Silly" diagnostics
-
-Given this code:
-
-```cs
-class C
-{
-    public required object? O;
-    public C() { O = null; }
-}
-```
-
-Should issue some kind of diagnostic that `O` is marked required, but never required in a contract? Developers might find marking properties as required to be useful
-as a safety net.
+## Open Questions
 
 ### Nested member initializers
 
@@ -432,13 +282,13 @@ class Range
     public required Location End { get; init; }
 }
 
-class Point
+class Location
 {
     public required int Column { get; init; }
     public required int Line { get; init; }
 }
 
-_ = new Range { Start = { Column = 0, Line = 0 }, End = { Column = 1, Line = 0 } } // Would this be allowed if Point is a struct type?
+_ = new Range { Start = { Column = 0, Line = 0 }, End = { Column = 1, Line = 0 } } // Would this be allowed if Location is a struct type?
 _ = new Range { Start = new Location { Column = 0, Line = 0 }, End = new Location { Column = 1, Line = 0 } } // Or would this form be necessary instead?
 ```
 
@@ -499,3 +349,76 @@ Additionally, does it create a new scope, like `base()` does, or does it share t
 functions, which the init clause may want to access, or for name shadowing, if an init expression introduces a variable via `out` parameter.
 
 **Conclusion**: `init` clause has been removed.
+
+### Accessibility requirements and `init`
+
+In versions of this proposal with the `init` clause, we talked about being able to have the following scenario:
+
+```cs
+public class Base
+{
+    protected required int _field;
+
+    protected Base() {} // Contract required that _field is set
+}
+public class Derived : Base
+{
+    public Derived() : init(_field = 1) // Contract is fulfilled and _field is removed from the required members list
+    {
+    }
+}
+```
+
+However, we have removed the `init` clause from the proposal at this point, so we need to decide whether to allow this scenario in a limited fashion. The options we
+have are:
+
+1. Disallow the scenario. This is the most conservative approach, and the rules in the [OHI](#overriding-hiding-and-inheriting) are currently written with this assumption
+in mind. The rule is that any member that is required must be at least as visible as its containing type.
+2. Require that all constructors are either:
+    1. No more visible than the least-visible required member.
+    2. Have the `SetsRequiredMembersAttribute` applied to the constructor.
+These would ensure that anyone who can see a constructor can either set all the things it exports, or there is nothing to set. This could be useful for types that are
+only ever created via static `Create` methods or similar builders, but the utility seems overall limited.
+3. Readd a way to remove specific parts of the contract to the proposal, as discussed in [LDM](https://github.com/dotnet/csharplang/blob/main/meetings/2021/LDM-2021-10-25.md)
+previously.
+
+**Conclusion**: Option 1, all required members must be at least as visible as their containing type.
+
+### Override rules
+
+The current spec says that the `required` keyword needs to be copied over and that overrides can make a member _more_ required, but not less. Is that what we want to do?
+Allowing removal of requirements needs more contract modification abilities than we are currently proposing.
+
+**Conclusion**: Adding `required` on override is allowed. If the overridden member is `required`, the overridding member must also be
+`required`.
+
+### Alternative metadata representation
+
+We could also take a different approach to metadata representation, taking a page from extension methods. We could put a `RequiredMemberAttribute` on the type to indicate
+that the type contains required members, and then put a `RequiredMemberAttribute` on each member that is required. This would simplify the lookup sequence (no need to do
+member lookup, just look for members with the attribute).
+
+**Conclusion**: Alternative approved.
+
+### Metadata Representation
+
+The [Metadata Representation](#metadata-representation) needs to be approved. We additionally need to decide whether these attributes should be included in the BCL.
+
+1. For `RequiredMemberAttribute`, this attribute is more akin to the general embedded attributes we use for nullable/nint/tuple member names, and will not be manually
+applied by the user in C#. It's possible that other languages might want to manually apply this attribute, however.
+2. `SetsRequiredMembersAttribute`, on the other hand, is directly used by consumers, and thus should likely be in the BCL.
+
+If we go with the alternative representation in the previous section, that might change the calculus on `RequiredMemberAttribute`: instead of being similar to the general
+embedded attributes for `nint`/nullable/tuple member names, it's closer to `System.Runtime.CompilerServices.ExtensionAttribute`, which has been in the framework since
+extension methods shipped.
+
+**Conclusion**: We will put both attributes in the BCL.
+
+### Warning vs Error
+
+Should not setting a required member be a warning or an error? It is certainly possible to trick the system, via `Activator.CreateInstance(typeof(C))` or similar, which
+means we may not be able to fully guarantee all properties are always set. We also allow suppression of the diagnostics at the constructor-site by using the `!`, which
+we generally do not allow for errors. However, the feature is similar to readonly fields or init properties, in that we hard error if users attempt to set such a member
+after initialization, but they can be circumvented by reflection.
+
+**Conclusion**: Errors.
