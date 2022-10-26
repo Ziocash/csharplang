@@ -4,7 +4,7 @@
 [summary]: #summary
 
 This is a revision on the initial native integers feature ([spec](https://github.com/dotnet/csharplang/blob/main/proposals/csharp-9.0/native-integers.md)), where the `nint`/`nuint` types were distinct from the underlying types `System.IntPtr`/`System.UIntPtr`.
-In short, we now treat `nint`/`nuint` as simple types aliasing `System.IntPtr`/`System.UIntPtr`, like we do for `int` in relation to `System.Int32`.
+In short, we now treat `nint`/`nuint` as simple types aliasing `System.IntPtr`/`System.UIntPtr`, like we do for `int` in relation to `System.Int32`. The `System.Runtime.CompilerServices.RuntimeFeature.NumericIntPtr` runtime feature flag triggers this new behavior.
 
 ## Design
 [design]: #design
@@ -99,8 +99,6 @@ The explicit enumeration conversions are:
 - From `sbyte`, `byte`, `short`, `ushort`, `int`, `uint`, **`nint`, `nuint`**, `long`, `ulong`, `char`, `float`, `double`, or `decimal` to any *enum_type*.
 - From any *enum_type* to `sbyte`, `byte`, `short`, `ushort`, `int`, `uint`, **`nint`, `nuint`**, `long`, `ulong`, `char`, `float`, `double`, or `decimal`.
 - From any *enum_type* to any other *enum_type*.
-
-# 11 Expressions
 
 #### 11.6.4.6 Better conversion target
 
@@ -243,8 +241,8 @@ The predefined shift operators are listed below.
 
   ```csharp
   ...
-  nint operator >>(nint x, nint count);
-  nuint operator >>(nuint x, nint count);
+  nint operator >>(nint x, int count);
+  nuint operator >>(nuint x, int count);
   ```
 
   The `>>` operator shifts `x` right by a number of bits computed as described below.
@@ -257,8 +255,8 @@ The predefined shift operators are listed below.
 
   ```csharp
   ...
-  nint operator >>>(nint x, nint count);
-  nuint operator >>>(nuint x, nint count);
+  nint operator >>>(nint x, int count);
+  nuint operator >>>(nuint x, int count);
   ```
 
 For the predefined operators, the number of bits to shift is computed as follows:

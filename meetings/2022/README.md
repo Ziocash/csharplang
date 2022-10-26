@@ -5,59 +5,156 @@ All schedule items must have a public issue or checked in proposal that can be l
 ## Schedule ASAP
 
 
+
 ## Schedule when convenient
 
-- Keywordness of `field` (Fred)
-- Set-only auto-props (Fred) https://github.com/dotnet/csharplang/issues/6089
-- Variable declarations under disjunctive patterns (Fred/Julien): https://github.com/dotnet/csharplang/blob/main/proposals/pattern-variables.md
 
 ## Recurring topics
 
 - *Triage championed features and milestones*
 - *Design review*
 
-## Wed Aug 31, 2022
 
-## Mon Aug 29, 2022
+## Mon Nov 30, 2022
 
-*Summer of C#*: More minimal (Safia, Fowler, Jared)
+## Mon Nov 28, 2022
 
-## Wed Aug 24, 2022
+## Mon Nov 14, 2022
 
-## Mon Aug 22, 2022
+## Mon Nov 7, 2022
 
-*Summer of C#*: Compiler optimizations and LINQ perf (Jared, Rikki, Maoni)
+## Mon Oct 31, 2022
 
-## Wed Aug 17, 2022
+- "Summer of C#" session on Collection initializers and ergonomics (Cyrus, Safia, Rikki) - *no notes*
 
-## Mon Aug 15, 2022
+## Wed Oct 26, 2022
 
-*Summer of C#*: Collection initializers and collection ergonomics (Cyrus, Rikki, Mads)
+- Null-conditional assignment (Rikki): https://github.com/dotnet/csharplang/issues/6045
 
-## Wed Aug 10, 2022
+## Mon Oct 24, 2022
 
-## Wed Aug 3, 2022
-
-## Mon Aug 1, 2022
-
-*Summer of C#*: Interactive and notebooks (Bill, Safia, Maoni)
-
-## Wed Jul 27, 2022
-
-## Wed Jul 20, 2022
-
-## Mon Jul 18, 2022
-
-*Summer of C#*: Union types (Fred, Chuck, Damian)
-
-## Mon Jul 11, 2022
-
-*Summer of C#*: Existential types, associated types and self-types (Mads, Andy, Jared)
-
+- LDM PGI for MVPs (Mads) - *no notes*
 
 # C# Language Design Notes for 2022
 
 Overview of meetings and agendas for 2022
+
+## Wed Oct 19, 2022
+
+[C# Language Design Meeting for October 19th, 2022](https://github.com/dotnet/csharplang/blob/main/meetings/2022/LDM-2022-10-19.md)
+
+- Open questions in list patterns on `IEnumerable`
+    - Allowing patterns after slices
+    - Allowing slicing to capture
+
+## Mon Oct 17, 2022
+
+[C# Language Design Meeting for October 17th, 2022](https://github.com/dotnet/csharplang/blob/main/meetings/2022/LDM-2022-10-17.md)
+
+- Primary Constructors
+- Permit variable declarations under disjunctive patterns
+
+## Wed Oct 12, 2022
+
+[C# Language Design Meeting for October 12th, 2022](https://github.com/dotnet/csharplang/blob/main/meetings/2022/LDM-2022-10-12.md)
+
+- Keywordness of `field`
+
+## Mon Oct 10, 2022
+
+[C# Language Design Meeting for October 10th, 2022](https://github.com/dotnet/csharplang/blob/main/meetings/2022/LDM-2022-10-10.md)
+
+- Working set triage
+    - Static classes implementing interfaces
+    - Null-conditional assignment
+    - Lambda default parameters
+- Working groups
+- `params` support for lambda default parameters
+    - Conclusion
+
+## Wed Oct 5, 2022
+
+[C# Language Design Meeting for October 5th, 2022](https://github.com/dotnet/csharplang/blob/main/meetings/2022/LDM-2022-10-05.md)
+
+- Review of `ref` fields
+    - `RefSafetyRulesAttribute`
+    - Return-only scope
+
+## Wed Sep 28, 2022
+
+[C# Language Design Meeting for September 28th, 2022](https://github.com/dotnet/csharplang/blob/main/meetings/2022/LDM-2022-09-28.md)
+
+- Working set triage
+    - Discriminated Unions
+    - Collection literals
+    - Nullability improvements
+    - Ungrouped
+
+## Mon Sep 26, 2022
+
+[C# Language Design Meeting for September 26th, 2022](https://github.com/dotnet/csharplang/blob/main/meetings/2022/LDM-2022-09-26.md)
+
+- Working set triage
+    - Roles & Extensions
+    - Discriminated Unions
+    - Bridging statements and expressions
+    - Construction improvements
+    - `ref struct` improvements
+    - `params` improvements
+    - Ungrouped
+
+## Wed Sep 21, 2022
+
+[C# Language Design Meeting for September 21st, 2022](https://github.com/dotnet/csharplang/blob/main/meetings/2022/LDM-2022-09-21.md)
+
+- Unchampioned issue triage
+    - Track subtype exhaustiveness for classes with only private constructors
+    - ReadOnlySpan initialization from static data
+    - Embedded Language Indicators for raw string literals
+    - Implicit Parameters
+- Unsafer Unsafeness
+    - Conclusion
+
+## Wed Aug 31, 2022
+
+[C# Language Design Meeting for August 31st, 2022](https://github.com/dotnet/csharplang/blob/main/meetings/2022/LDM-2022-08-31.md)
+
+1. Short term work triage
+    1. Partial properties
+    2. Using aliases for any type
+    3. Null-conditional assignment
+    4. `await?`
+    5. `params IEnumerable`
+    6. Discriminated Unions
+    7. Roles
+    8. `pragma warning enable`
+    9. Ignored directives support
+    10. Primary constructors
+    11. Switch expression as a statement
+
+## Wed Aug 24, 2022
+
+[C# Language Design Meeting for August 24th, 2022](https://github.com/dotnet/csharplang/blob/main/meetings/2022/LDM-2022-08-24.md)
+
+1. C# feature triage
+
+## Wed Aug 10, 2022
+
+[C# Language Design Meeting for August 10th, 2022](https://github.com/dotnet/csharplang/blob/main/meetings/2022/LDM-2022-08-10.md)
+
+1. `required` property default nullability
+
+## Wed Aug 3, 2022
+
+[C# Language Design Meeting for August 3rd, 2022](https://github.com/dotnet/csharplang/blob/main/meetings/2022/LDM-2022-08-03.md)
+
+1. `ref` fields specification updates
+
+## Wed Jul 27, 2022
+
+[C# Language Design Meeting for July 27th, 2022](https://github.com/dotnet/csharplang/blob/main/meetings/2022/LDM-2022-07-27.md)
+
+1. `scoped` for local declarations
 
 ## Wed Jul 13, 2022
 
